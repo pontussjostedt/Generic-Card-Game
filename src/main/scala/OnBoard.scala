@@ -4,6 +4,24 @@ class Creature(path: String, infoPath: String = "placeHolderInfo.png")
     extends OnBoard(path, infoPath) {
   var maxHealth = 20
   var hp = maxHealth
+  var maxArmor = 2
+  var armor = maxArmor
+
+  
+
+  /**Called at the start of round */
+  override def onStartOfRound(): Unit = {
+    armor = maxArmor
+  }
+
+  /**damages armor and health accordingly
+   * @param  dmgDealt damage to card
+  */
+  def damage(dmgDealt: Int): Unit = {
+    var dmgLeft = dmgDealt
+    armor -= dmgLeft
+    dmgLeft = math.max(dmgLeft - armor, 0)
+  }
 
   override def updateCardImage(): Unit = {
     var img = new BufferedImage(
