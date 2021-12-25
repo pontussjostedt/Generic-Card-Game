@@ -16,11 +16,6 @@ abstract class Card(path: String, infoPath: String = "placeHolderInfo.png") {
   def drawCard(g2d: java.awt.Graphics2D, x: Int, y: Int, width: Int, height: Int): Unit = 
     g2d.drawImage(image,x,y, width, height, null)
 
-    /** called by board at start of each round */
-  def onStartOfRound(): Unit = {
-
-  }
-
   def updateCardImage(): Unit = {
       //----------UpdateInfoImage---------------
       var img = new BufferedImage(infoImage.getWidth, infoImage.getHeight, BufferedImage.TYPE_4BYTE_ABGR)
