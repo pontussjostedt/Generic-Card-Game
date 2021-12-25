@@ -16,8 +16,6 @@ class PlayerController(player: Player)(using ctx: Game) {
     val testTimer = new Timer(500)
     var toHighlight = ArrayBuffer[(Graphics2D) => Unit]()
 
-
-
     def tick(): Unit = {
         updateControlls()
         currentState.tick()

@@ -2,7 +2,7 @@ import java.awt.Graphics2D
 import Mana.*
 class Game {
   given Game = this
-  var window = new Window("import steel as steal", Game.dimX, Game.dimY)
+  val window = new Window("import steel as steal", Game.dimX, Game.dimY)
   var a = new ManaReserve()()
   var board = new Board("board.png", 50, 50)
   var testHand = new Hand(Deck(), 6*128,0)
@@ -93,7 +93,7 @@ class Timer(ms: Int) {
     def resetIf(): Boolean = {
         var out = System.currentTimeMillis - t1 > ms
         if(out)
-            this.reset()
+            reset()
         out
     }
 }
