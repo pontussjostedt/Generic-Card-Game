@@ -4,9 +4,10 @@ import Highlight.*
 import scala.collection.mutable.ArrayBuffer
 import scala.util.hashing.Hashing.Default
 class PlayerController(player: Player)(using ctx: Game) {
+    println("---------CREATING NEW PLAYERCONTROLLER----------")
     var currentState: ControllerState = new DefaultState
     val board = ctx.board
-    val hand = ctx.testHand
+    val hand = player.hand
     val mana = player.reserve
     var absPos = ctx.window.mouseManager.pos
     var mousePos = ((absPos(0)-board.x)/board.cardSize, (absPos(1)-board.y)/board.cardSize)
@@ -23,6 +24,8 @@ class PlayerController(player: Player)(using ctx: Game) {
 
    
     def draw(g2d: java.awt.Graphics2D): Unit = {
+        hand.draw(g2d)
+        player.draw(g2d)
         if(board.contains(absPos)) then g2d.highlightCardOverBoard(RedHL, absPos)
         if(hand.contains(absPos)) then g2d.highlightCardOverHand(WhiteHL, absPos)
         currentState.draw(g2d)
@@ -121,6 +124,10 @@ class PlayerController(player: Player)(using ctx: Game) {
             cardContainer = Some(hand.cards(0))
             hand.cards -= hand.cards(0)
             currentState = DraggingState()
+
+        if(ctx.window.keyManager.isKeyPressed(81) && ctx.turntimer.resetIf())
+            ctx.counter += 1
+            println(ctx.counter)
     }
 
     def enterBoardDragState(): Unit = {

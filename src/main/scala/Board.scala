@@ -11,9 +11,6 @@ class Board(path: String, var x: Int = 0, var y: Int = 0)(using ctx: Game) {
   var arrBound = new Bound(0,0,arr.length, arr(0).length)
   var cardSize = 128
   var deleteMe = Game.loadImage("highlight.png")
-  arr(3)(1) = Some(new TestCard("test.png"))
-  arr(3)(2) = Some(new TestCard("berserker.png"))
-  arr(3)(3) = Some(new TestCard("paladin.png", "paladinInfo.png"))
 
   def draw(g2d: java.awt.Graphics2D): Unit = {
       val pos = getMouseQuadrant()

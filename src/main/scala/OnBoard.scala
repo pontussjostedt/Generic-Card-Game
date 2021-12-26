@@ -3,8 +3,8 @@ import java.awt.image.BufferedImage
 import scala.collection.mutable.ArrayBuffer
 import java.awt.Color
 import java.awt.Graphics2D
-class Creature(path: String, infoPath: String = "placeHolderInfo.png")
-    extends OnBoard(path, infoPath) {
+class Creature(path: String, infoPath: String = "placeHolderInfo.png", team: Team)
+    extends OnBoard(path, infoPath, team) {
   var maxHealth = 1000
   var hp = maxHealth
   println("------------------------------------------------" + hp)
@@ -101,8 +101,8 @@ class Creature(path: String, infoPath: String = "placeHolderInfo.png")
     out
   }
 }
-abstract class OnBoard(path: String, infoPath: String)
-    extends Card(path: String, infoPath: String) {
+abstract class OnBoard(path: String, infoPath: String, team: Team)
+    extends Card(path: String, infoPath: String, team) {
   val modifiers = new ArrayBuffer[(OnBoard) => Unit]()
 
   /** called on entering the board */

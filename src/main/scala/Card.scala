@@ -1,7 +1,7 @@
 import scala.collection.mutable
 import java.awt.image.BufferedImage
 import Mana.*
-abstract class Card(path: String, infoPath: String = "placeHolderInfo.png") {
+abstract class Card(path: String, infoPath: String = "placeHolderInfo.png", var team: Team) {
   val infoImageSource = Game.loadImage(infoPath)
   val manaCost = new ManaCost((Red, 3), (Blue, 2), (White, 1), (Green, 4))
   var image = Game.loadImage(path)
@@ -50,12 +50,9 @@ abstract class Card(path: String, infoPath: String = "placeHolderInfo.png") {
   }
 }
 
-class TestCard(path: String, infoPath: String = "placeHolderInfo.png") extends Card(path, infoPath) {
-
-}
-
 /**Used to flag different types of creatures */
 enum Tag {
+  case FirstStrike extends Tag
   case Warrior extends Tag
   case Human extends Tag
   case Stunned extends Tag

@@ -3,15 +3,16 @@ import Mana.*
 class Game {
   given Game = this
   val window = new Window("import steel as steal", Game.dimX, Game.dimY)
-  var a = new ManaReserve()()
   var board = new Board("board.png", 50, 50)
-  var testHand = new Hand(Deck(), 6*128,0)
-  var player1 = new Player("Bob")
-  var playerController = new PlayerController(player1)
-  var testManaReserve = new ManaReserve((Red, 5), (Blue, 3))()
-  var testCost = new ManaCost((Red, 5), (Blue, 2))
-
+  //------------------------------------------------------------------------------
+  val player1 = new Player("player 1", Team.Red)
+  val player2 = new Player("player 2", Team.Blue)
+  //------------------------------------------------------------------------------
+  val controllers = Vector(PlayerController(player1), PlayerController(player2))
+  var activePlayerController = controllers(0)
+  var counter = 0
   var fpsTimer = new Timer(10000)
+  val turntimer = new Timer(1000)
   var fps = 0
   
   while(true){
@@ -22,13 +23,13 @@ class Game {
 
 
   def tick(): Unit = {
-      playerController.tick()
+      activePlayerController = controllers(counter % controllers.length)
+      activePlayerController.tick()
   }
 
   def draw(g2d: Graphics2D): Unit = {
       board.draw(g2d)
-      testHand.draw(g2d)
-      playerController.draw(g2d)
+      activePlayerController.draw(g2d)
       player1.draw(g2d)
   }
 

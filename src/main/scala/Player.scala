@@ -2,8 +2,9 @@ import Mana.*
 import Game.*
 import scala.collection.mutable.ArrayBuffer
 import java.awt.Graphics2D
-class Player(val name: String) {
+class Player(val name: String, val team: Team)(using ctx: Game) {
   var reserve = ManaReserve((Red, 20), (Blue, 10), (White, 2), (Green, 30), (Black, 10))(1700, Game.dimY)
+  val hand = new Hand(Deck(team), 6*128, 0)
 
   def draw(g2d: Graphics2D): Unit = {
     var toDraw = reserve.curMan.filter{case (key, value) => value > 0}.toVector.sortBy{case (key, value) => value > value}
@@ -15,10 +16,10 @@ class Player(val name: String) {
   }
 }
 
-class Deck {
+class Deck(team: Team) {
   var cards: ArrayBuffer[Card] = ArrayBuffer[Card]()
   for (i <- 0 to 30) {
-    cards += Creature("res/white/testPaladin/boardImage.png", "paladinInfo.png")
+    cards += Creature("res/white/testPaladin/boardImage.png", "paladinInfo.png", team)
   }
   //shuffle()
   def getNextCard(): Option[Card] = {
