@@ -11,6 +11,8 @@ class Creature(path: String, infoPath: String = "placeHolderInfo.png", team: Tea
   var maxArmor = 2
   var armor = maxArmor
 
+  var power = 4
+
   /** Called at the start of round */
   override def onStartOfRound(using board: Board): Unit = {
     armor = maxArmor
@@ -128,5 +130,14 @@ abstract class OnBoard(path: String, infoPath: String, team: Team)
   /** Called on taking dmager */
   def onDamage(using board: Board): Unit = {
 
+  }
+
+  object OnBoard {
+    /** forces two cards to fight eachother */
+    def fight(card1: Creature, card2: Creature): Unit = {
+      card1.damage(card2.power)
+      card2.damage(card1.power)
+      println("MORTAL FIGHT BAT BAH BAHA BAHA BAH")
+    }
   }
 }

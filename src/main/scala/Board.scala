@@ -60,7 +60,9 @@ class Board(path: String, var x: Int = 0, var y: Int = 0)(using ctx: Game) {
     arr(pos(0))(pos(1))
   }
 
-  /** WARNING DO NOT USE !This UNLESS YOU WANT BUGS, YOU WILL GET FALSE POSITIVES WARNING WARNING WARNING */
+  /** Returns if card is defined at pos
+   * @param pos matrix coordinates
+  */
   def isCard(pos: (Int, Int)): Boolean = {
     var out = false
     if(arrBound.contains(pos))
@@ -68,6 +70,30 @@ class Board(path: String, var x: Int = 0, var y: Int = 0)(using ctx: Game) {
       case None => 
       case Some(i) => out = true
       out
+  }
+
+  /** Returns true if Some(Card) and card is in same team
+   * @param pos matrix coordinates
+   */
+  def isAlliedCard(pos: (Int, Int), team: Team): Boolean = {
+    var out = false
+    if(arrBound.contains(pos))
+    this(pos) match
+      case None => 
+      case Some(i) => out = i.team == team
+      out
+  }
+
+  /** Returns true if Some(Card) and card is not in the same team
+   *  @param pos matrix coordinates
+   */
+  def isEnemyCard(pos: (Int, Int), team: Team): Boolean = {
+    var out = false
+    if(arrBound.contains(pos))
+    this(pos) match
+      case None => 
+      case Some(i) => out = i.team != team
+    out
   }
 
   /** Good you found me use me

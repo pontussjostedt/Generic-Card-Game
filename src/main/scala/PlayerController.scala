@@ -60,25 +60,32 @@ class PlayerController(player: Player)(using ctx: Game) {
         }
 
 
-            def isValidBoardDrag: Boolean = {ctx.window.mouseManager.leftPressed && board.isCard(mousePos) && cardContainer == None && dragTimer()}
+            def isValidBoardDrag: Boolean = {ctx.window.mouseManager.leftPressed && board.isAlliedCard(mousePos, player.team) && cardContainer == None && dragTimer()}
             def isValidHandDrag: Boolean = {ctx.window.mouseManager.leftPressed && hand.bound.contains(absPos) && cardContainer == None && dragTimer()}
     }
 
-    case class DraggingState() extends ControllerState {
+    case class DraggingState(var origin: (Int, Int)) extends ControllerState {
         var isAllowedToRelease = false
         def tick(): Unit = {
             if(!ctx.window.mouseManager.leftPressed)
                 isAllowedToRelease = true
             
-            if(ctx.window.mouseManager.leftPressed && isAllowedToRelease && board.isNotCard(mousePos)){
+            if(isOkRelease && board.isNotCard(mousePos)){
                 board.set(mousePos, cardContainer)
                 cardContainer = None
                 currentState = DefaultState()
                 dragTimer.reset()
             }
+            else if(isOkRelease && board.isEnemyCard(mousePos, player.team)){
+                board.set(origin, cardContainer)
+                println("FIGHT FIGHT FIGHT")
+                cardContainer = None
+                currentState = DefaultState()
+                dragTimer.reset()
+            }
+            
 
-            //if(currentState == this)
-                //toHighlight += {_.drawImage(cardContainer.get.image, absPos(0), absPos(1), 100, 100, null)}
+            def isOkRelease: Boolean = ctx.window.mouseManager.leftPressed && isAllowedToRelease
         }
 
         def draw(g2d: Graphics2D): Unit = {
@@ -120,11 +127,6 @@ class PlayerController(player: Player)(using ctx: Game) {
     def handDebug(): Unit = {
         if(ctx.window.keyManager.isKeyPressed(65) && testTimer.resetIf())
                 hand.drawCard()
-        if(ctx.window.keyManager.isKeyPressed(68) && testTimer.resetIf())
-            cardContainer = Some(hand.cards(0))
-            hand.cards -= hand.cards(0)
-            currentState = DraggingState()
-
         if(ctx.window.keyManager.isKeyPressed(81) && ctx.turntimer.resetIf())
             ctx.counter += 1
             println(ctx.counter)
@@ -133,7 +135,7 @@ class PlayerController(player: Player)(using ctx: Game) {
     def enterBoardDragState(): Unit = {
         cardContainer = board(mousePos)
         board.set(mousePos, None)
-        currentState = DraggingState()
+        currentState = DraggingState(mousePos)
     }
 
     def enterHandDragState(): Unit = {
