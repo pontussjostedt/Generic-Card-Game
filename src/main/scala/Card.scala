@@ -4,7 +4,7 @@ import Mana.*
 abstract class Card(path: String, infoPath: String = "placeHolderInfo.png") {
   val infoImageSource = Game.loadImage(infoPath)
   val manaCost = new ManaCost((Red, 3), (Blue, 2), (White, 1), (Green, 4))
-  val image = Game.loadImage(path)
+  var image = Game.loadImage(path)
   var infoImage = Game.loadImage(infoPath)
   var tags = scala.collection.mutable.Set.empty[Tag]
   updateCardImage()
@@ -16,6 +16,7 @@ abstract class Card(path: String, infoPath: String = "placeHolderInfo.png") {
   def drawCard(g2d: java.awt.Graphics2D, x: Int, y: Int, width: Int, height: Int): Unit = 
     g2d.drawImage(image,x,y, width, height, null)
 
+  /** updates infoImage */
   def updateCardImage(): Unit = {
       //----------UpdateInfoImage---------------
       var img = new BufferedImage(infoImage.getWidth, infoImage.getHeight, BufferedImage.TYPE_4BYTE_ABGR)
@@ -53,10 +54,9 @@ class TestCard(path: String, infoPath: String = "placeHolderInfo.png") extends C
 
 }
 
-case class Tag(var tagType: TagType, var info: String = "") {
-    
-}
-
-enum TagType {
-    case Warrior extends TagType
+/**Used to flag different types of creatures */
+enum Tag {
+  case Warrior extends Tag
+  case Human extends Tag
+  case Stunned extends Tag
 }

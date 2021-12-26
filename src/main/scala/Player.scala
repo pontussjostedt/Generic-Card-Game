@@ -18,9 +18,7 @@ class Player(val name: String) {
 class Deck {
   var cards: ArrayBuffer[Card] = ArrayBuffer[Card]()
   for (i <- 0 to 30) {
-    cards += TestCard("berserker.png")
-    cards += TestCard("paladin.png", "paladinInfo.png")
-    cards += Creature("paladin.png", "paladinInfo.png")
+    cards += Creature("res/white/testPaladin/boardImage.png", "paladinInfo.png")
   }
   //shuffle()
   def getNextCard(): Option[Card] = {

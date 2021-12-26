@@ -5,8 +5,9 @@ import java.awt.Color
 import java.awt.Graphics2D
 class Creature(path: String, infoPath: String = "placeHolderInfo.png")
     extends OnBoard(path, infoPath) {
-  var maxHealth = 20
+  var maxHealth = 1000
   var hp = maxHealth
+  println("------------------------------------------------" + hp)
   var maxArmor = 2
   var armor = maxArmor
 
@@ -17,8 +18,7 @@ class Creature(path: String, infoPath: String = "placeHolderInfo.png")
 
   /** damages armor and health accordingly to damage and checks if creature is
     * dead, also updates cardImage
-    * @param dmgDealt
-    *   damage to card
+    * @param dmgDealt damage to card
     */
   def damage(dmgDealt: Int): Unit = {
     var dmgLeft = dmgDealt
@@ -63,11 +63,22 @@ class Creature(path: String, infoPath: String = "placeHolderInfo.png")
     }
     g2d.setFont(new Font("Courier New", 1, 22))
     g2d.setColor(getHpTextColor(g2d))
+    println(hp)
     g2d.drawString(s"$hp/$maxHealth", 238, 415)
+    infoImage = img
+    //-------------------------------------------------
 
     g2d.dispose
-    infoImage = img
+    img = new BufferedImage(
+      image.getWidth,
+      image.getHeight,
+      BufferedImage.TYPE_4BYTE_ABGR
+    )
+    g2d = img.createGraphics()
+    g2d.drawImage(image, 0,0, img.getWidth, img.getHeight, null)
 
+    image = img
+    g2d.dispose
   }
 
   /** Returns the Color which the hp is drawn in depending on current health relative to max health */
@@ -107,5 +118,15 @@ abstract class OnBoard(path: String, infoPath: String)
   /** called by board at start of each round */
   def onStartOfRound(using board: Board): Unit = {
     println("Start of new round!")
+  }
+
+  /**Called before combat */
+  def onCombat(card: Card)(using board: Board): Unit = {
+
+  }
+
+  /** Called on taking dmager */
+  def onDamage(using board: Board): Unit = {
+
   }
 }
