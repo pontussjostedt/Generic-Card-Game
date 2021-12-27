@@ -21,6 +21,7 @@ class Deck(team: Team) {
   for (i <- 0 to 30) {
     cards += Creature("res/white/testPaladin/boardImage.png", "paladinInfo.png", team)
   }
+  cards.last.tags += Tag.FirstStrike
   //shuffle()
   def getNextCard(): Option[Card] = {
     var out = cards.last

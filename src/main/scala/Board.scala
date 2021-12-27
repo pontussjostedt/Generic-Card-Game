@@ -2,8 +2,11 @@ import javax.imageio.ImageIO
 import java.io.File
 import java.awt.image.BufferedImage
 import java.awt.Graphics2D
+import scala.collection.mutable.ArrayBuffer
+import scala.annotation.targetName
 class Board(path: String, var x: Int = 0, var y: Int = 0)(using ctx: Game) {
-  var arr = Array.fill[Option[Card]](5,10)(None)
+  given Board = this
+  var arr = Array.fill[Option[OnBoard]](5,10)(None)
   var image: BufferedImage = javax.imageio.ImageIO.read(new File(path))
   /**absolute Bound */
   var bound = new Bound(x,y,image.getWidth,image.getHeight)
@@ -60,6 +63,30 @@ class Board(path: String, var x: Int = 0, var y: Int = 0)(using ctx: Game) {
     arr(pos(0))(pos(1))
   }
 
+  /**Returns a list of all cards which the filter applies to*/
+  def filter(f: (OnBoard, (Int, Int)) => Boolean): Seq[OnBoard] = {
+    val out = ArrayBuffer[OnBoard]()
+    for(x <- arr.indices; y <- arr(x).indices){
+      arr(x)(y) match {
+        case Some(card) => if(f(card, (x,y))) then out += card
+        case None =>
+      }
+    }
+    out.toSeq
+  }
+
+  /**Returns a list of all cards which the filter applies to*/
+  def filter(f: (OnBoard) => Boolean): Seq[OnBoard] = {
+    val out = ArrayBuffer[OnBoard]()
+    for(x <- arr.indices; y <- arr(x).indices){
+      arr(x)(y) match {
+        case Some(card) => if(f(card)) then out += card
+        case None =>
+      }
+    }
+    out.toSeq
+  }
+
   /** Returns if card is defined at pos
    * @param pos matrix coordinates
   */
@@ -112,12 +139,87 @@ class Board(path: String, var x: Int = 0, var y: Int = 0)(using ctx: Game) {
     arr(pos(0))(pos(1))
   }
 
-  def set(pos: (Int, Int), in: Option[Card]): Unit = {
+  /*Either
+  def set(pos: (Int, Int), in: Option[OnBoard]): Unit = {
+    assert(in.isDefined, "------NOT DEFEINED IN SET FUNCTION------")
     arr(pos(0))(pos(1)) = in
+    arr(pos(0))(pos(1)).get match {
+      case onBoard: OnBoard => onBoard.onEnter(pos(0), pos(1))
+      case _ =>
+    }
+  }
+  */
+
+
+  
+  //FIX THIS IT ACTUALLY HURTS MY EYES
+  def set(pos: (Int, Int), in: Option[Card]): Unit = {
+    var onBoard: OnBoard = null
+    if(in.isDefined){
+    in.get match {
+      case onBo: OnBoard => onBoard = onBo
+      case _ => throw Exception("INBOARD IS NULL PLEASE STOP BEING LAZY :)")
+    }
+    arr(pos(0))(pos(1)) = Some(onBoard)
+    arr(pos(0))(pos(1)).get match {
+      case onBoard: OnBoard => onBoard.onEnter(pos(0), pos(1))
+      case _ =>
+    }
+    } else {
+      arr(pos(0))(pos(1)) = None
+    }
   }
 
+  def resetPos(pos: (Int, Int), in: Option[Card]): Unit = {
+    var onBoard: OnBoard = null
+    if(in.isDefined){
+    in.get match {
+      case onBo: OnBoard => onBoard = onBo
+      case null => throw Exception("INBOARD IS NULL PLEASE STOP BEING LAZY :)")
+    }
+    arr(pos(0))(pos(1)) = Some(onBoard)
+    } else {
+      arr(pos(0))(pos(1)) = None
+    }
+  }
+  
+
+  def set(pos: (Int, Int), in: OnBoard): Unit = {
+    arr(pos(0))(pos(1)) = Some(in)
+    arr(pos(0))(pos(1)).get match {
+      case onBoard: OnBoard => onBoard.onEnter(pos(0), pos(1))
+      case _ =>
+    }
+  }
+  /**Returns true if mouse is positioned over the board
+   * @param pos abs pos
+  */
   def contains(pos: (Int, Int)): Boolean = {
     bound.contains(pos)
   }
 }
 
+sealed trait Filter {
+    /**
+     * @param card your onboard object
+     * @param matrixPos position of said object
+     */
+    def apply(card: OnBoard, matrixPos: (Int, Int)): Boolean
+    case class Contains(tags: Tag*) extends Filter {
+      def apply(card: OnBoard, matrixPos: (Int, Int)): Boolean = {
+        var out = false
+        if(tags.forall(x => card.tags.contains(x)))
+          out = true
+        out
+      }
+    }
+  }
+
+  object Filters {
+    def containsTag(card: OnBoard, matrixPos: (Int, Int), tags: Tag*): Boolean = {
+      var out = false
+      if(tags.forall({x => card.tags.contains(x)}))
+          out = true
+      out
+    }
+  }

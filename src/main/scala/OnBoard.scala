@@ -5,17 +5,17 @@ import java.awt.Color
 import java.awt.Graphics2D
 class Creature(path: String, infoPath: String = "placeHolderInfo.png", team: Team)
     extends OnBoard(path, infoPath, team) {
-  var maxHealth = 1000
-  var hp = maxHealth
-  println("------------------------------------------------" + hp)
-  var maxArmor = 2
-  var armor = maxArmor
+  val maxHealth: Int = 1000
+  val hp: Int = 1000
+  //Här är hp = 0 när jag printar
+  val maxArmor = 2
+  val armor = maxArmor
 
-  var power = 4
+  val power = 4
 
   /** Called at the start of round */
   override def onStartOfRound(using board: Board): Unit = {
-    armor = maxArmor
+    //armor = maxArmor
   }
 
   /** damages armor and health accordingly to damage and checks if creature is
@@ -24,9 +24,9 @@ class Creature(path: String, infoPath: String = "placeHolderInfo.png", team: Tea
     */
   def damage(dmgDealt: Int): Unit = {
     var dmgLeft = dmgDealt
-    armor -= dmgLeft
+    //armor -= dmgLeft
     dmgLeft = math.max(dmgLeft - armor, 0)
-    hp -= dmgLeft
+    //hp -= dmgLeft
     updateCardImage()
     if (hp <= 0) {
       println("I am dead")
@@ -65,7 +65,7 @@ class Creature(path: String, infoPath: String = "placeHolderInfo.png", team: Tea
     }
     g2d.setFont(new Font("Courier New", 1, 22))
     g2d.setColor(getHpTextColor(g2d))
-    println(hp)
+    println(s"$hp/$maxHealth")
     g2d.drawString(s"$hp/$maxHealth", 238, 415)
     infoImage = img
     //-------------------------------------------------
@@ -108,7 +108,7 @@ abstract class OnBoard(path: String, infoPath: String, team: Team)
   val modifiers = new ArrayBuffer[(OnBoard) => Unit]()
 
   /** called on entering the board */
-  def onEnter(using board: Board): Unit = {
+  def onEnter(matrixPos: (Int, Int))(using board: Board): Unit = {
     println("I entered")
   }
 
@@ -127,12 +127,13 @@ abstract class OnBoard(path: String, infoPath: String, team: Team)
 
   }
 
-  /** Called on taking dmager */
+  /** Called on taking dmage */
   def onDamage(using board: Board): Unit = {
 
   }
+}
 
-  object OnBoard {
+object OnBoard {
     /** forces two cards to fight eachother */
     def fight(card1: Creature, card2: Creature): Unit = {
       card1.damage(card2.power)
@@ -140,4 +141,3 @@ abstract class OnBoard(path: String, infoPath: String, team: Team)
       println("MORTAL FIGHT BAT BAH BAHA BAHA BAH")
     }
   }
-}

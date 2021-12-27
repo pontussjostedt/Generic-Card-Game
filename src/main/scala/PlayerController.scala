@@ -5,6 +5,7 @@ import scala.collection.mutable.ArrayBuffer
 import scala.util.hashing.Hashing.Default
 class PlayerController(player: Player)(using ctx: Game) {
     println("---------CREATING NEW PLAYERCONTROLLER----------")
+    var cardContainer: Option[Card] = None
     var currentState: ControllerState = new DefaultState
     val board = ctx.board
     val hand = player.hand
@@ -12,7 +13,7 @@ class PlayerController(player: Player)(using ctx: Game) {
     var absPos = ctx.window.mouseManager.pos
     var mousePos = ((absPos(0)-board.x)/board.cardSize, (absPos(1)-board.y)/board.cardSize)
     
-    var cardContainer: Option[Card] = None
+    
     val dragTimer = new Timer(250)
     val testTimer = new Timer(500)
     var toHighlight = ArrayBuffer[(Graphics2D) => Unit]()
@@ -45,7 +46,7 @@ class PlayerController(player: Player)(using ctx: Game) {
     }
 
     case class DefaultState() extends ControllerState {
-       
+       assert(!cardContainer.isDefined, "You didnt exit your previous state correctly")
         def tick(): Unit = {
             handDebug()
             if(isValidBoardDrag)
@@ -71,13 +72,14 @@ class PlayerController(player: Player)(using ctx: Game) {
                 isAllowedToRelease = true
             
             if(isOkRelease && board.isNotCard(mousePos)){
-                board.set(mousePos, cardContainer)
+                board.resetPos(mousePos, cardContainer)
                 cardContainer = None
                 currentState = DefaultState()
                 dragTimer.reset()
             }
             else if(isOkRelease && board.isEnemyCard(mousePos, player.team)){
-                board.set(origin, cardContainer)
+                board.resetPos(origin, cardContainer)
+                println(origin)
                 println("FIGHT FIGHT FIGHT")
                 cardContainer = None
                 currentState = DefaultState()
@@ -130,6 +132,7 @@ class PlayerController(player: Player)(using ctx: Game) {
         if(ctx.window.keyManager.isKeyPressed(81) && ctx.turntimer.resetIf())
             ctx.counter += 1
             println(ctx.counter)
+            println(board.filter(Filters.containsTag(_, _, Tag.FirstStrike, Tag.Human)))
     }
 
     def enterBoardDragState(): Unit = {
