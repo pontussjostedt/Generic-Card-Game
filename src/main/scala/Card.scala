@@ -2,7 +2,7 @@ import scala.collection.mutable
 import java.awt.image.BufferedImage
 import Mana.*
 abstract class Card(path: String, infoPath: String = "placeHolderInfo.png", var team: Team) {
-  val infoImageSource = Game.loadImage(infoPath)
+  protected val infoImageSource = Game.loadImage(infoPath)
   val manaCost = new ManaCost((Red, 3), (Blue, 2), (White, 1), (Green, 4))
   var image = Game.loadImage(path)
   var infoImage = Game.loadImage(infoPath)
@@ -36,7 +36,6 @@ abstract class Card(path: String, infoPath: String = "placeHolderInfo.png", var 
             }
     }
     g2d.dispose
-    //--------UpdateBoardImage---------
     infoImage = img
 
 }

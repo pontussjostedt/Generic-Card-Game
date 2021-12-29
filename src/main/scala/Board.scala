@@ -135,7 +135,7 @@ class Board(path: String, var x: Int = 0, var y: Int = 0)(using ctx: Game) {
     out
   }
 
-  def apply(pos: (Int, Int)): Option[Card] = {
+  def apply(pos: (Int, Int)): Option[OnBoard] = {
     arr(pos(0))(pos(1))
   }
 
@@ -196,6 +196,22 @@ class Board(path: String, var x: Int = 0, var y: Int = 0)(using ctx: Game) {
   */
   def contains(pos: (Int, Int)): Boolean = {
     bound.contains(pos)
+  }
+
+  def destroy(matrixPos: (Int, Int)): Unit = {
+    assert(this(matrixPos).isDefined, "You called destroy incorrectly, can not destroy what does not exist")
+    this(matrixPos).get.onDestroy(matrixPos)
+    arr(matrixPos(0))(matrixPos(1)) = None
+    
+  }
+
+  def destroyDead(): Unit = {
+    for(x <- arr.indices; y <- arr(x).indices){
+      arr(x)(y) match {
+        case Some(card) => if(card.toDestroy) then destroy((x,y))
+        case None =>
+      }
+    }
   }
 }
 

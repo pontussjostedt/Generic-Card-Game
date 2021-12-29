@@ -3,15 +3,19 @@ import java.awt.image.BufferedImage
 import scala.collection.mutable.ArrayBuffer
 import java.awt.Color
 import java.awt.Graphics2D
-class Creature(path: String, infoPath: String = "placeHolderInfo.png", team: Team)
-    extends OnBoard(path, infoPath, team) {
-  val maxHealth: Int = 1000
-  val hp: Int = 1000
+class Creature(
+    path: String,
+    infoPath: String = "placeHolderInfo.png",
+    team: Team
+) extends OnBoard(path, infoPath, team) {
+  val maxHealth: Int = 20
+  var hp: Int = 20
   //Här är hp = 0 när jag printar
   val maxArmor = 2
-  val armor = maxArmor
+  var armor = maxArmor
 
   val power = 4
+  updateCardImage()
 
   /** Called at the start of round */
   override def onStartOfRound(using board: Board): Unit = {
@@ -20,16 +24,18 @@ class Creature(path: String, infoPath: String = "placeHolderInfo.png", team: Tea
 
   /** damages armor and health accordingly to damage and checks if creature is
     * dead, also updates cardImage
-    * @param dmgDealt damage to card
+    * @param dmgDealt
+    *   damage to card
     */
   def damage(dmgDealt: Int): Unit = {
     var dmgLeft = dmgDealt
-    //armor -= dmgLeft
+    armor -= dmgLeft
+    armor = math.max(0, armor)
     dmgLeft = math.max(dmgLeft - armor, 0)
-    //hp -= dmgLeft
+    hp -= dmgLeft
     updateCardImage()
     if (hp <= 0) {
-      println("I am dead")
+      toDestroy = true
     }
   }
 
@@ -43,7 +49,7 @@ class Creature(path: String, infoPath: String = "placeHolderInfo.png", team: Tea
       value < value
     }
     var g2d = img.createGraphics()
-    g2d.drawImage(infoImage, 0, 0, img.getWidth, img.getHeight, null)
+    g2d.drawImage(infoImageSource, 0, 0, img.getWidth, img.getHeight, null)
     val iconWidth = 20
     val iconHeight = 20
     val xIcon = 290
@@ -65,7 +71,6 @@ class Creature(path: String, infoPath: String = "placeHolderInfo.png", team: Tea
     }
     g2d.setFont(new Font("Courier New", 1, 22))
     g2d.setColor(getHpTextColor(g2d))
-    println(s"$hp/$maxHealth")
     g2d.drawString(s"$hp/$maxHealth", 238, 415)
     infoImage = img
     //-------------------------------------------------
@@ -77,13 +82,26 @@ class Creature(path: String, infoPath: String = "placeHolderInfo.png", team: Tea
       BufferedImage.TYPE_4BYTE_ABGR
     )
     g2d = img.createGraphics()
-    g2d.drawImage(image, 0,0, img.getWidth, img.getHeight, null)
-
+    g2d.drawImage(boardImageSource, 0, 0, img.getWidth, img.getHeight, null)
+    g2d.drawImage(
+      team.flag,
+      355,
+      -60,
+      team.flag.getWidth,
+      team.flag.getHeight,
+      null
+    )
+    g2d.setFont(new Font("Courier New", 1, 60))
+    g2d.setColor(Color.black)
+    g2d.drawString(armor.toString, 400, 455)
+    g2d.drawString(s"$power/$hp", 25, 455)
     image = img
     g2d.dispose
   }
 
-  /** Returns the Color which the hp is drawn in depending on current health relative to max health */
+  /** Returns the Color which the hp is drawn in depending on current health
+    * relative to max health
+    */
   def getHpTextColor(g2d: Graphics2D): Color = {
     var out: Color = Color(0, 0, 0)
     if (hp < maxHealth)
@@ -93,7 +111,9 @@ class Creature(path: String, infoPath: String = "placeHolderInfo.png", team: Tea
     out
   }
 
-  /** Returns the Color which the armor is drawn with depending on current Armor relative to max armor*/
+  /** Returns the Color which the armor is drawn with depending on current Armor
+    * relative to max armor
+    */
   def getArmorTextColor(g2d: Graphics2D): Color = {
     var out: Color = Color(0, 0, 0)
     if (armor < maxHealth)
@@ -105,7 +125,9 @@ class Creature(path: String, infoPath: String = "placeHolderInfo.png", team: Tea
 }
 abstract class OnBoard(path: String, infoPath: String, team: Team)
     extends Card(path: String, infoPath: String, team) {
+  var toDestroy = false
   val modifiers = new ArrayBuffer[(OnBoard) => Unit]()
+  val boardImageSource = Game.loadImage(path)
 
   /** called on entering the board */
   def onEnter(matrixPos: (Int, Int))(using board: Board): Unit = {
@@ -113,8 +135,8 @@ abstract class OnBoard(path: String, infoPath: String, team: Team)
   }
 
   /** Called on destruction */
-  def onDestroy(using board: Board): Unit = {
-    println("I was destroyed")
+  def onDestroy(matrixPos: (Int, Int))(using board: Board): Unit = {
+    println(s"I was destroyed at ($matrixPos)")
   }
 
   /** called by board at start of each round */
@@ -122,22 +144,52 @@ abstract class OnBoard(path: String, infoPath: String, team: Team)
     println("Start of new round!")
   }
 
-  /**Called before combat */
-  def onCombat(card: Card)(using board: Board): Unit = {
-
-  }
+  /** Called before combat */
+  def onCombat(card: Card)(using board: Board): Unit = {}
 
   /** Called on taking dmage */
-  def onDamage(using board: Board): Unit = {
+  def onDamage(using board: Board): Unit = {}
 
-  }
+  Tag.FirstStrike
 }
 
 object OnBoard {
-    /** forces two cards to fight eachother */
-    def fight(card1: Creature, card2: Creature): Unit = {
-      card1.damage(card2.power)
-      card2.damage(card1.power)
-      println("MORTAL FIGHT BAT BAH BAHA BAHA BAH")
-    }
+
+  /** forces two cards to fight eachother */
+
+  def fight(attackingCreature: Creature, defendingCreature: Creature): Unit = {
+    if (attackingCreature.tags.contains(Tag.FirstStrike))
+      firstStrikeFight(attackingCreature, defendingCreature)
+    else
+      normalFight(attackingCreature, defendingCreature)
+    updateImages(attackingCreature, defendingCreature)
+
+    /*
+    if(attackingCreature.hp <= 0)
+      attackingCreature.toDestroy = true
+    if(defendingCreature.hp <= 0)
+      attackingCreature.toDestroy= true
+    */
   }
+
+  def firstStrikeFight(
+      attackingCreature: Creature,
+      defendingCreature: Creature
+  ): Unit = {
+    defendingCreature.damage(attackingCreature.power)
+    if(defendingCreature.hp > 0)
+      attackingCreature.damage(defendingCreature.power)
+  }
+
+  def normalFight(
+      attackingCreature: Creature,
+      defendingCreature: Creature
+  ): Unit = {
+    defendingCreature.damage(attackingCreature.power)
+    attackingCreature.damage(defendingCreature.power)
+  }
+
+  def updateImages(in: OnBoard*): Unit = {
+    in.foreach(_.updateCardImage())
+  }
+}

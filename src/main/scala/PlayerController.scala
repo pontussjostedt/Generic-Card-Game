@@ -81,6 +81,9 @@ class PlayerController(player: Player)(using ctx: Game) {
                 board.resetPos(origin, cardContainer)
                 println(origin)
                 println("FIGHT FIGHT FIGHT")
+                OnBoard.fight(cardContainer.get.asInstanceOf[Creature], board(mousePos).get.asInstanceOf[Creature])
+                board.destroyDead()
+                
                 cardContainer = None
                 currentState = DefaultState()
                 dragTimer.reset()
@@ -175,7 +178,9 @@ enum Highlight(path: String){
     case RedHL extends Highlight("redHighlight.png")
 }
 
-enum Team() {
-    case Red extends Team
-    case Blue extends Team
+enum Team(path: String) {
+    val flag = Game.loadImage(path)
+    def apply: BufferedImage = flag
+    case Red extends Team("res/teamFlags/redTeamFlag.png")
+    case Blue extends Team("res/teamFlags/blueTeamFlag.png")
 }
