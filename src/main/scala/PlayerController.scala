@@ -3,7 +3,7 @@ import java.awt.Graphics2D
 import Highlight.*
 import scala.collection.mutable.ArrayBuffer
 import scala.util.hashing.Hashing.Default
-class PlayerController(player: Player)(using ctx: Game) {
+class PlayerController(val player: Player)(using ctx: Game) {
     println("---------CREATING NEW PLAYERCONTROLLER----------")
     var cardContainer: Option[Card] = None
     var currentState: ControllerState = new DefaultState
@@ -61,7 +61,7 @@ class PlayerController(player: Player)(using ctx: Game) {
         }
 
 
-            def isValidBoardDrag: Boolean = {ctx.window.mouseManager.leftPressed && board.isAlliedCard(mousePos, player.team) && cardContainer == None && dragTimer()}
+            def isValidBoardDrag: Boolean = {ctx.window.mouseManager.leftPressed && board.isAlliedWithTurn(mousePos, player.team) && cardContainer == None && dragTimer()}
             def isValidHandDrag: Boolean = {ctx.window.mouseManager.leftPressed && hand.bound.contains(absPos) && cardContainer == None && dragTimer()}
     }
 
@@ -134,7 +134,7 @@ class PlayerController(player: Player)(using ctx: Game) {
                 hand.drawCard()
         if(ctx.window.keyManager.isKeyPressed(81) && ctx.turntimer.resetIf())
             ctx.counter += 1
-            println(ctx.counter)
+            board.newRound(ctx.controllers(ctx.counter % ctx.controllers.length).player.team)
             println(board.filter(Filters.containsTag(_, _, Tag.FirstStrike, Tag.Human)))
     }
 
@@ -176,6 +176,7 @@ enum Highlight(path: String){
     }
     case WhiteHL extends Highlight("highlight.png")
     case RedHL extends Highlight("redHighlight.png")
+    case SleepHL extends Highlight("res/highlights/sleepHighlight.png")
 }
 
 enum Team(path: String) {

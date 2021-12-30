@@ -3,7 +3,8 @@ import java.awt.image.BufferedImage
 import scala.collection.mutable.ArrayBuffer
 import java.awt.Color
 import java.awt.Graphics2D
-class Creature(
+import creatures.Paladin
+open class Creature(
     path: String,
     infoPath: String = "placeHolderInfo.png",
     team: Team
@@ -18,8 +19,16 @@ class Creature(
   updateCardImage()
 
   /** Called at the start of round */
-  override def onStartOfRound(using board: Board): Unit = {
-    //armor = maxArmor
+  override def onStartOfRound(matrixPos: (Int, Int))(using board: Board): Unit = {
+    armor = maxArmor
+    updateCardImage()
+  }
+  var a = Paladin()
+  override def onStartOfSelfRound(matrixPos: (Int, Int))(using board: Board): Unit = {
+    if(tags.contains(Tag.Stunned))
+      tags -= Tag.Stunned
+    else
+      setNoTurnTaken()
   }
 
   /** damages armor and health accordingly to damage and checks if creature is
@@ -29,9 +38,8 @@ class Creature(
     */
   def damage(dmgDealt: Int): Unit = {
     var dmgLeft = dmgDealt
-    armor -= dmgLeft
-    armor = math.max(0, armor)
     dmgLeft = math.max(dmgLeft - armor, 0)
+    armor = math.max(armor - dmgLeft, 0)
     hp -= dmgLeft
     updateCardImage()
     if (hp <= 0) {
@@ -125,6 +133,7 @@ class Creature(
 }
 abstract class OnBoard(path: String, infoPath: String, team: Team)
     extends Card(path: String, infoPath: String, team) {
+  var hasTakenTurn = false
   var toDestroy = false
   val modifiers = new ArrayBuffer[(OnBoard) => Unit]()
   val boardImageSource = Game.loadImage(path)
@@ -140,8 +149,12 @@ abstract class OnBoard(path: String, infoPath: String, team: Team)
   }
 
   /** called by board at start of each round */
-  def onStartOfRound(using board: Board): Unit = {
+  def onStartOfRound(matrixPos: (Int, Int))(using board: Board): Unit = {
     println("Start of new round!")
+  }
+  /** called by board at start of players turn */
+  def onStartOfSelfRound(matrixPos: (Int, Int))(using board: Board): Unit = {
+    println("Start of my round!")
   }
 
   /** Called before combat */
@@ -150,7 +163,35 @@ abstract class OnBoard(path: String, infoPath: String, team: Team)
   /** Called on taking dmage */
   def onDamage(using board: Board): Unit = {}
 
-  Tag.FirstStrike
+  /**Makes this card unvailable
+   * override me if you want to change this logic
+  */
+  def setTurnTaken(): Unit = {
+    println("Im on cd")
+    hasTakenTurn = true
+  }
+
+  /**Makes this card available
+   * override me if you want to change this logic
+  */
+  def setNoTurnTaken(): Unit = {
+    hasTakenTurn = false
+  }
+
+  def getTeam(): Team = {
+    team
+  }
+
+  def draw(g2d: Graphics2D, x: Int, y: Int, width: Int, height: Int): Unit = {
+    g2d.drawImage(image, x, y, width, height, null)
+    if(hasTakenTurn)
+      drawSleepOverlay(g2d, x, y, width, height)
+  }
+
+  def drawSleepOverlay(g2d: Graphics2D, x: Int, y: Int, width: Int, height: Int): Unit = {
+    println("DRAWING PRINT OVERLAY")
+    g2d.drawImage(Highlight.SleepHL.img ,x, y, width, height, null)
+  }
 }
 
 object OnBoard {
@@ -170,6 +211,7 @@ object OnBoard {
     if(defendingCreature.hp <= 0)
       attackingCreature.toDestroy= true
     */
+    attackingCreature.setTurnTaken()
   }
 
   def firstStrikeFight(

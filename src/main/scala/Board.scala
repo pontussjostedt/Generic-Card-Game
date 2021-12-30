@@ -4,6 +4,7 @@ import java.awt.image.BufferedImage
 import java.awt.Graphics2D
 import scala.collection.mutable.ArrayBuffer
 import scala.annotation.targetName
+import creatures.Paladin
 class Board(path: String, var x: Int = 0, var y: Int = 0)(using ctx: Game) {
   given Board = this
   var arr = Array.fill[Option[OnBoard]](5,10)(None)
@@ -20,7 +21,7 @@ class Board(path: String, var x: Int = 0, var y: Int = 0)(using ctx: Game) {
       g2d.drawImage(image,x,y,image.getWidth, image.getHeight, null)
       for(x <- arr.indices; y <- arr(x).indices){
           arr(x)(y) match {
-            case Some(card) => g2d.drawImage(card.image, this.x + x*cardSize, this.y + y*cardSize, cardSize, cardSize, null) 
+            case Some(card) => card.draw(g2d, this.x + x*cardSize, this.y + y*cardSize, cardSize, cardSize)
             case None => //println("no card here!")
           }
       }
@@ -108,6 +109,17 @@ class Board(path: String, var x: Int = 0, var y: Int = 0)(using ctx: Game) {
     this(pos) match
       case None => 
       case Some(i) => out = i.team == team
+      out
+  }
+  /** Returns true if Some(Card) and card is in same team and has not used its turn
+   * @param pos matrix coordinates
+   */
+  def isAlliedWithTurn(pos: (Int, Int), team: Team): Boolean = {
+    var out = false
+    if(arrBound.contains(pos))
+    this(pos) match
+      case None => 
+      case Some(card) => out = (card.team == team && !card.hasTakenTurn)
       out
   }
 
@@ -209,6 +221,23 @@ class Board(path: String, var x: Int = 0, var y: Int = 0)(using ctx: Game) {
     for(x <- arr.indices; y <- arr(x).indices){
       arr(x)(y) match {
         case Some(card) => if(card.toDestroy) then destroy((x,y))
+        case None =>
+      }
+    }
+  }
+
+  def foreach(f: (OnBoard) => Unit): Unit = {
+    for(x <- arr.indices; y <- arr(x).indices){
+      arr(x)(y) match {
+        case Some(card) => f(card)
+        case None =>
+      }
+    }
+  }
+  def newRound(team: Team): Unit = {
+    for(x <- arr.indices; y <- arr(x).indices){
+      arr(x)(y) match {
+        case Some(card) => {card.onStartOfRound((x,y)); if(card.getTeam() == team) then card.onStartOfSelfRound((x,y))}
         case None =>
       }
     }
