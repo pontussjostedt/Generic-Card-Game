@@ -3,27 +3,24 @@ import java.awt.image.BufferedImage
 import scala.collection.mutable.ArrayBuffer
 import java.awt.Color
 import java.awt.Graphics2D
-import creatures.Paladin
 open class Creature(
+    val power: Int, 
+    val maxHealth: Int,
+    val maxArmor: Int, 
     path: String,
     infoPath: String = "placeHolderInfo.png",
     team: Team
 ) extends OnBoard(path, infoPath, team) {
-  val maxHealth: Int = 20
-  var hp: Int = 20
-  //Här är hp = 0 när jag printar
-  val maxArmor = 2
+  var hp: Int = maxHealth
   var armor = maxArmor
-
-  val power = 4
   updateCardImage()
 
   /** Called at the start of round */
   override def onStartOfRound(matrixPos: (Int, Int))(using board: Board): Unit = {
     armor = maxArmor
+    onStartOfRound.foreach(f => f(board, this, matrixPos))
     updateCardImage()
   }
-  var a = Paladin()
   override def onStartOfSelfRound(matrixPos: (Int, Int))(using board: Board): Unit = {
     if(tags.contains(Tag.Stunned))
       tags -= Tag.Stunned
@@ -47,6 +44,10 @@ open class Creature(
     }
   }
 
+  def heal(restoration: Int): Unit = {
+    hp = math.min(restoration + hp, maxHealth)
+  }
+
   override def updateCardImage(): Unit = {
     var img = new BufferedImage(
       infoImage.getWidth,
@@ -63,6 +64,7 @@ open class Creature(
     val xIcon = 290
     val yIcon = 4
     var counter = 0
+    /*
     for (i <- manaList.indices) {
       var icon = manaList(i)(0).icon
       for (j <- 0 until manaList(i)(1)) {
@@ -77,6 +79,7 @@ open class Creature(
         counter += 1
       }
     }
+    */
     g2d.setFont(new Font("Courier New", 1, 22))
     g2d.setColor(getHpTextColor(g2d))
     g2d.drawString(s"$hp/$maxHealth", 238, 415)
@@ -130,12 +133,20 @@ open class Creature(
       out = Color.BLUE
     out
   }
+
+  def fight(card: OnBoard): Unit = {
+    card match {
+      case a: Creature => 
+      case _ => println("NOT A CREATURE MONKA")
+    }
+  }
 }
 abstract class OnBoard(path: String, infoPath: String, team: Team)
     extends Card(path: String, infoPath: String, team) {
   var hasTakenTurn = false
   var toDestroy = false
   val modifiers = new ArrayBuffer[(OnBoard) => Unit]()
+  val onStartOfRound = new ArrayBuffer[(Board, OnBoard, (Int, Int)) => Unit]()
   val boardImageSource = Game.loadImage(path)
 
   /** called on entering the board */
@@ -150,7 +161,7 @@ abstract class OnBoard(path: String, infoPath: String, team: Team)
 
   /** called by board at start of each round */
   def onStartOfRound(matrixPos: (Int, Int))(using board: Board): Unit = {
-    println("Start of new round!")
+    onStartOfRound.foreach(f => f(board, this, matrixPos))
   }
   /** called by board at start of players turn */
   def onStartOfSelfRound(matrixPos: (Int, Int))(using board: Board): Unit = {
@@ -189,7 +200,6 @@ abstract class OnBoard(path: String, infoPath: String, team: Team)
   }
 
   def drawSleepOverlay(g2d: Graphics2D, x: Int, y: Int, width: Int, height: Int): Unit = {
-    println("DRAWING PRINT OVERLAY")
     g2d.drawImage(Highlight.SleepHL.img ,x, y, width, height, null)
   }
 }

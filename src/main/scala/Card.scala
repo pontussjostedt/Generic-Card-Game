@@ -54,5 +54,9 @@ enum Tag {
   case FirstStrike extends Tag
   case Warrior extends Tag
   case Human extends Tag
+  case Priest extends Tag
   case Stunned extends Tag
+  case Pierce extends Tag
+  case Angel extends Tag
+  case Flying extends Tag
 }

@@ -1,5 +1,0 @@
-package creatures
-
-class Paladin {
-  
-}

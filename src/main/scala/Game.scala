@@ -49,7 +49,12 @@ object Game {
     val dimY = 1000
     val highlightPos = (800,400)
     def loadImage(path: String): java.awt.image.BufferedImage = {
+        try {
         javax.imageio.ImageIO.read(new java.io.File(path))
+        }
+        catch {
+            case _ => throw Exception(s"file could not be found($path)")
+        }
     }
 
     extension (value: Int) {
@@ -80,6 +85,17 @@ class Bound(val x: Int, val y: Int, val width: Int, val height: Int) {
             out = true
         }
         out
+    }
+}
+
+object Bound {
+    def forcedAlignmentBound(pos: (Int, Int), side: Int): Bound = {
+        assert(side % 2 == 1, s"Not an allowed bound because the side is even($side)")
+        val sideOffSet: Int = side/2
+        val x = pos(0) - sideOffSet
+        val y = pos(1) - sideOffSet
+        val outSide = 2*sideOffSet + 1
+        Bound(x, y, outSide, outSide)
     }
 }
 

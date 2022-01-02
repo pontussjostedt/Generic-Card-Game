@@ -19,9 +19,14 @@ class Player(val name: String, val team: Team)(using ctx: Game) {
 class Deck(team: Team) {
   var cards: ArrayBuffer[Card] = ArrayBuffer[Card]()
   for (i <- 0 to 30) {
-    cards += Creature("res/white/testPaladin/boardImage.png", "paladinInfo.png", team)
+    cards += Creature(4,6,2,"res/white/testPaladin/boardImage.png", "paladinInfo.png", team)
   }
-  cards.last.tags += Tag.FirstStrike
+  cards += CutThroat(team)
+  cards += GoldForgePriest(team)
+  cards += AngelicRecruit(team)
+  cards += AngelicCommander(team)
+  cards += DivineOrderProtector(team)
+  cards += FootSoldier(team)
   //shuffle()
   def getNextCard(): Option[Card] = {
     var out = cards.last

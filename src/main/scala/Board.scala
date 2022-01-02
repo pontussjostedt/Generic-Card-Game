@@ -4,7 +4,6 @@ import java.awt.image.BufferedImage
 import java.awt.Graphics2D
 import scala.collection.mutable.ArrayBuffer
 import scala.annotation.targetName
-import creatures.Paladin
 class Board(path: String, var x: Int = 0, var y: Int = 0)(using ctx: Game) {
   given Board = this
   var arr = Array.fill[Option[OnBoard]](5,10)(None)
@@ -83,6 +82,19 @@ class Board(path: String, var x: Int = 0, var y: Int = 0)(using ctx: Game) {
       arr(x)(y) match {
         case Some(card) => if(f(card)) then out += card
         case None =>
+      }
+    }
+    out.toSeq
+  }
+
+  //Remake me so I'm just a forloop this will suck if I add a larger board
+  def getCardsInSquare(matrixCardPos: (Int, Int), side: Int, condition: (OnBoard) => Boolean): Seq[OnBoard] = {
+    val out = ArrayBuffer[OnBoard]()
+    val forcedBound = Bound.forcedAlignmentBound(matrixCardPos, side)
+    for(x <- arr.indices; y <- arr(x).indices){
+      arr(x)(y) match {
+        case Some(card) => if(forcedBound.contains(x, y) && condition(card)) then out += card
+        case None => 
       }
     }
     out.toSeq
@@ -235,6 +247,7 @@ class Board(path: String, var x: Int = 0, var y: Int = 0)(using ctx: Game) {
     }
   }
   def newRound(team: Team): Unit = {
+    println("newRound")
     for(x <- arr.indices; y <- arr(x).indices){
       arr(x)(y) match {
         case Some(card) => {card.onStartOfRound((x,y)); if(card.getTeam() == team) then card.onStartOfSelfRound((x,y))}
@@ -265,6 +278,16 @@ sealed trait Filter {
       var out = false
       if(tags.forall({x => card.tags.contains(x)}))
           out = true
+      out
+    }
+    def isInSquare(card: OnBoard, matrixCardPos: (Int, Int), matrixPos: (Int, Int), side: Int): Boolean = {
+      assert(side % 2 == 1, "Detta kommer att bli snett....")
+      var bound = Bound.forcedAlignmentBound(matrixCardPos, side)
+      if(bound.contains(matrixPos)){
+
+      }
+      var out = false
+      
       out
     }
   }
