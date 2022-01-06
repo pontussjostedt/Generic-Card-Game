@@ -62,6 +62,12 @@ object Game {
             math.max(range.head, math.min(range.last, value))
         }
     }
+
+    extension (value: Range) {
+        def clamp(range: Range): Range = {
+            value.head.clamp(range) to value.last.clamp(range)
+        }
+    }
 }
 
 /** Use me to check if coordinates are inside of a zone
@@ -69,9 +75,7 @@ object Game {
  * @param width width of bound
  * @param height height of bound
 */
-class Bound(val x: Int, val y: Int, val width: Int, val height: Int) {
-    var xRange = x until width + x
-    var yRange = y until height + y
+class Bound(var xRange: Range, var yRange: Range) {
     def contains(x: Int, y: Int): Boolean = {
         var out = false
         if(xRange.contains(x) && yRange.contains(y)){
@@ -86,9 +90,33 @@ class Bound(val x: Int, val y: Int, val width: Int, val height: Int) {
         }
         out
     }
+
+    import Game.clamp
+    def clamp(bound: Bound): Bound  = {
+        val newXRange = xRange.clamp(bound.xRange)
+        val newYRange = yRange.clamp(bound.yRange)
+        new Bound(newXRange, newYRange)
+    }
+
+    def toSet: Set[(Int, Int)] = {
+        val out = scala.collection.mutable.ArrayBuffer[(Int, Int)]()
+        for(x <- xRange; y <- yRange) {
+            out += (x -> y)
+        }
+        out.toSet
+    }
+
+    override def toString: String = {
+        s"($xRange,$yRange)"
+    }
 }
 
 object Bound {
+    def apply(x: Int, y: Int, width: Int, height: Int): Bound = {
+        var xRange = x until width + x
+        var yRange = y until height + y
+        new Bound(xRange, yRange)
+    }
     def forcedAlignmentBound(pos: (Int, Int), side: Int): Bound = {
         assert(side % 2 == 1, s"Not an allowed bound because the side is even($side)")
         val sideOffSet: Int = side/2
@@ -99,7 +127,9 @@ object Bound {
     }
 }
 
-/**Returns true after the time is done, input is in ms and reset does what it says it does */
+/**Returns true after the time is done, input is in ms and reset does what it says it does
+ * @param ms time in milliseconds
+ */
 class Timer(ms: Int) {
     var t1 = System.currentTimeMillis
     def reset(): Unit = {

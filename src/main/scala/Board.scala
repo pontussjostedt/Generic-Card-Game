@@ -9,9 +9,9 @@ class Board(path: String, var x: Int = 0, var y: Int = 0)(using ctx: Game) {
   var arr = Array.fill[Option[OnBoard]](5,10)(None)
   var image: BufferedImage = javax.imageio.ImageIO.read(new File(path))
   /**absolute Bound */
-  var bound = new Bound(x,y,image.getWidth,image.getHeight)
+  var bound = Bound(x,y,image.getWidth,image.getHeight)
   /**matrix Bound */
-  var arrBound = new Bound(0,0,arr.length, arr(0).length)
+  var arrBound = new Bound(arr.indices, arr(0).indices)
   var cardSize = 128
   var deleteMe = Game.loadImage("highlight.png")
 
@@ -87,17 +87,36 @@ class Board(path: String, var x: Int = 0, var y: Int = 0)(using ctx: Game) {
     out.toSeq
   }
 
-  //Remake me so I'm just a forloop this will suck if I add a larger board
-  def getCardsInSquare(matrixCardPos: (Int, Int), side: Int, condition: (OnBoard) => Boolean): Seq[OnBoard] = {
-    val out = ArrayBuffer[OnBoard]()
-    val forcedBound = Bound.forcedAlignmentBound(matrixCardPos, side)
+  /**Returns a list of all cards which the filter applies to*/
+  def positionFilter(f: (OnBoard) => Boolean): Seq[(Int, Int)] = {
+    val out = ArrayBuffer[(Int, Int)]()
     for(x <- arr.indices; y <- arr(x).indices){
       arr(x)(y) match {
-        case Some(card) => if(forcedBound.contains(x, y) && condition(card)) then out += card
-        case None => 
+        case Some(card) => if(f(card)) then out += (x -> y)
+        case None =>
       }
     }
     out.toSeq
+  }
+
+  def getCardsInSquare(matrixCardPos: (Int, Int), side: Int, condition: (OnBoard) => Boolean): Seq[OnBoard] = {
+    val out = ArrayBuffer[OnBoard]()
+    val forcedBound = Bound.forcedAlignmentBound(matrixCardPos, side)
+    val clampedBound = arrBound.clamp(forcedBound)
+    println(s"forced $forcedBound, arrb $arrBound, clamped $clampedBound")
+    for(x <- clampedBound.xRange; y <- clampedBound.yRange){
+      println(s"($x,$y,${ctx.activePlayerController.player.team})")
+      arr(x)(y) match {
+        case Some(card) => if(condition(card)) then out += card
+        case None =>
+      }
+    }
+    out.toSeq
+  }
+
+  def getAdjacentPos(matrixPos: (Int, Int)): Set[(Int, Int)] = {
+    val out = Set(((matrixPos(0)-1) -> matrixPos(1)), ((matrixPos(0)+1) -> matrixPos(1)))
+    out.filter(arrBound.contains(_))
   }
 
   /** Returns if card is defined at pos

@@ -3,6 +3,7 @@ import java.awt.image.BufferedImage
 import scala.collection.mutable.ArrayBuffer
 import java.awt.Color
 import java.awt.Graphics2D
+import scala.collection.mutable
 open class Creature(
     val power: Int, 
     val maxHealth: Int,
@@ -189,8 +190,20 @@ abstract class OnBoard(path: String, infoPath: String, team: Team)
     hasTakenTurn = false
   }
 
+  
+
   def getTeam(): Team = {
     team
+  }
+
+  def getPossibleSpawnLocation(using board: Board): Set[(Int, Int)] = {
+    given Board = board
+    val xs = team.spawnRegion ++ getExtraSpawn(board)
+    xs
+  }
+
+  def getExtraSpawn(board: Board): Set[(Int, Int)] = {
+    Set.empty[(Int, Int)]
   }
 
   def draw(g2d: Graphics2D, x: Int, y: Int, width: Int, height: Int): Unit = {

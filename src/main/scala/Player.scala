@@ -27,6 +27,9 @@ class Deck(team: Team) {
   cards += AngelicCommander(team)
   cards += DivineOrderProtector(team)
   cards += FootSoldier(team)
+  cards += FootSoldier(team)
+  cards += FootSoldier(team)
+  cards += FootSoldier(team)
   //shuffle()
   def getNextCard(): Option[Card] = {
     var out = cards.last
@@ -52,7 +55,7 @@ class Hand(deck: Deck, x: Int, y: Int)(using ctx: Game) {
   var cardY = 88 * 2
   var cards = ArrayBuffer[Card]()
   /**Absolute coordinates! */
-  def bound = new Bound(x, y, cardX * cards.length, cardY)
+  def bound = Bound(x, y, cardX * cards.length, cardY)
   for (i <- 0 to 7)
   deck.getNextCard() match {
     case Some(card) => cards += card

@@ -5,6 +5,7 @@ import scala.collection.mutable.ArrayBuffer
 import scala.util.hashing.Hashing.Default
 class PlayerController(val player: Player)(using ctx: Game) {
     println("---------CREATING NEW PLAYERCONTROLLER----------")
+    given Board = board
     var cardContainer: Option[Card] = None
     var currentState: ControllerState = new DefaultState
     val board = ctx.board
@@ -99,9 +100,11 @@ class PlayerController(val player: Player)(using ctx: Game) {
     }
 
     case class HandDraggingState() extends ControllerState {
+        require(cardContainer.isDefined, "CARD CONTAINER NOT DEFINED")
+        //require(cardContainer.get match {case a: OnBoard => false; case _ => true}, "Not an onboard unit")
         var insertBound = if(hand.cards.indices.length > 0) then (0 to hand.cards.indices.last+1) else 0 to 0
         var isAllowedToRelease = false
-        require(cardContainer.isDefined, "CARD CONTAINER NOT DEFINED")
+        
         def tick(): Unit = {
             if(!ctx.window.mouseManager.leftPressed)
                 isAllowedToRelease = true
@@ -121,6 +124,11 @@ class PlayerController(val player: Player)(using ctx: Game) {
         def draw(g2d: Graphics2D): Unit = {
             if(isValidInsertPos)
                 hand.highlightInsert(g2d, absPos)
+
+            cardContainer.get match {
+                case a: OnBoard => a.getPossibleSpawnLocation.foreach{x => board.highlightSquare(g2d, Highlight.WhiteHL, x)}
+                case _ =>
+            }
             g2d.drawImage(cardContainer.get.image, absPos(0), absPos(1), 100, 100, null)
         }
 
@@ -179,9 +187,9 @@ enum Highlight(path: String){
     case SleepHL extends Highlight("res/highlights/sleepHighlight.png")
 }
 
-enum Team(path: String) {
+enum Team(path: String, val spawnRegion: Set[(Int, Int)]) {
     val flag = Game.loadImage(path)
     def apply: BufferedImage = flag
-    case Red extends Team("res/teamFlags/redTeamFlag.png")
-    case Blue extends Team("res/teamFlags/blueTeamFlag.png")
+    case Red extends Team("res/teamFlags/redTeamFlag.png", Bound.forcedAlignmentBound((2,1), 3).toSet)
+    case Blue extends Team("res/teamFlags/blueTeamFlag.png", Bound.forcedAlignmentBound((2,6), 3).toSet)
 }
