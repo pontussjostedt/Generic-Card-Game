@@ -13,7 +13,6 @@ class Board(path: String, var x: Int = 0, var y: Int = 0)(using ctx: Game) {
   /**matrix Bound */
   var arrBound = new Bound(arr.indices, arr(0).indices)
   var cardSize = 128
-  var deleteMe = Game.loadImage("highlight.png")
 
   def draw(g2d: java.awt.Graphics2D): Unit = {
       val pos = getMouseQuadrant()

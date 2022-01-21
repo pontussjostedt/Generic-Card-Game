@@ -182,8 +182,8 @@ enum Highlight(path: String){
     def draw(x: Int = 0, y: Int = 0, width: Int = img.getWidth, height: Int = img.getHeight)(using g2d: Graphics2D): Unit = {
         g2d.drawImage(img, x, y, width, height, null)
     }
-    case WhiteHL extends Highlight("highlight.png")
-    case RedHL extends Highlight("redHighlight.png")
+    case WhiteHL extends Highlight("res/highlights/highlight.png")
+    case RedHL extends Highlight("res/highlights/redHighlight.png")
     case SleepHL extends Highlight("res/highlights/sleepHighlight.png")
 }
 
