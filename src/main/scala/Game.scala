@@ -3,7 +3,7 @@ import Mana.*
 class Game {
   given Game = this
   val window = new Window("import steel as steal", Game.dimX, Game.dimY)
-  var board = new Board("board.png", 50, 50)
+  val board = new Board("res/boards/board.png", 50, 50)
   //------------------------------------------------------------------------------
   val player1 = new Player("player 1", Team.Red)
   val player2 = new Player("player 2", Team.Blue)
