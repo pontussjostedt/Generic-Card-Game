@@ -1,6 +1,7 @@
 import scala.collection.mutable
 import java.awt.image.BufferedImage
 import Mana.*
+//Test
 abstract class Card(path: String, infoPath: String = "placeHolderInfo.png", var team: Team) {
   protected val infoImageSource = Game.loadImage(infoPath)
   val manaCost = new ManaCost((Red, 3), (Blue, 2), (White, 1), (Green, 4))
