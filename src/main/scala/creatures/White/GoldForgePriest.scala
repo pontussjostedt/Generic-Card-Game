@@ -1,4 +1,4 @@
-class GoldForgePriest(team: Team) extends Creature(2,4,0,"res/white/goldForgeHealer/goldForgeHealerBoard.png","res/white/goldForgeHealer/goldForgeHealerInfo.png", team){
+class GoldForgePriest(team: Team) extends Creature(2,4,0,3, "res/white/goldForgeHealer/goldForgeHealerBoard.png","res/white/goldForgeHealer/goldForgeHealerInfo.png", team){
   onStartOfRound += {case(board, card, pos) => heal(board, card, pos)}
   tags += Tag.Human
   tags += Tag.Pierce

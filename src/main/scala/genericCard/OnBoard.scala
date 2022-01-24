@@ -5,9 +5,10 @@ import java.awt.Color
 import java.awt.Graphics2D
 import scala.collection.mutable
 open class Creature(
-    val power: Int, 
+    val power: Int,
     val maxHealth: Int,
-    val maxArmor: Int, 
+    val maxArmor: Int,
+    var manaCost: Int,
     path: String,
     infoPath: String = "placeHolderInfo.png",
     team: Team
@@ -17,13 +18,17 @@ open class Creature(
   updateCardImage()
 
   /** Called at the start of round */
-  override def onStartOfRound(matrixPos: (Int, Int))(using board: Board): Unit = {
+  override def onStartOfRound(
+      matrixPos: (Int, Int)
+  )(using board: Board): Unit = {
     armor = maxArmor
     onStartOfRound.foreach(f => f(board, this, matrixPos))
     updateCardImage()
   }
-  override def onStartOfSelfRound(matrixPos: (Int, Int))(using board: Board): Unit = {
-    if(tags.contains(Tag.Stunned))
+  override def onStartOfSelfRound(
+      matrixPos: (Int, Int)
+  )(using board: Board): Unit = {
+    if (tags.contains(Tag.Stunned))
       tags -= Tag.Stunned
     else
       setNoTurnTaken()
@@ -77,7 +82,7 @@ open class Creature(
         counter += 1
       }
     }
-    */
+     */
     g2d.setFont(new Font("Courier New", 1, 22))
     g2d.setColor(getHpTextColor(g2d))
     g2d.drawString(s"$hp/$maxHealth", 238, 415)
@@ -134,8 +139,8 @@ open class Creature(
 
   def fight(card: OnBoard): Unit = {
     card match {
-      case a: Creature => 
-      case _ => println("NOT A CREATURE MONKA")
+      case a: Creature =>
+      case _           => println("NOT A CREATURE MONKA")
     }
   }
 }
@@ -161,6 +166,7 @@ abstract class OnBoard(path: String, infoPath: String, team: Team)
   def onStartOfRound(matrixPos: (Int, Int))(using board: Board): Unit = {
     onStartOfRound.foreach(f => f(board, this, matrixPos))
   }
+
   /** called by board at start of players turn */
   def onStartOfSelfRound(matrixPos: (Int, Int))(using board: Board): Unit = {
     println("Start of my round!")
@@ -172,22 +178,18 @@ abstract class OnBoard(path: String, infoPath: String, team: Team)
   /** Called on taking dmage */
   def onDamage(using board: Board): Unit = {}
 
-  /**Makes this card unvailable
-   * override me if you want to change this logic
-  */
+  /** Makes this card unvailable override me if you want to change this logic
+    */
   def setTurnTaken(): Unit = {
     println("Im on cd")
     hasTakenTurn = true
   }
 
-  /**Makes this card available
-   * override me if you want to change this logic
-  */
+  /** Makes this card available override me if you want to change this logic
+    */
   def setNoTurnTaken(): Unit = {
     hasTakenTurn = false
   }
-
-  
 
   def getTeam(): Team = {
     team
@@ -205,12 +207,18 @@ abstract class OnBoard(path: String, infoPath: String, team: Team)
 
   def draw(g2d: Graphics2D, x: Int, y: Int, width: Int, height: Int): Unit = {
     g2d.drawImage(image, x, y, width, height, null)
-    if(hasTakenTurn)
+    if (hasTakenTurn)
       drawSleepOverlay(g2d, x, y, width, height)
   }
 
-  def drawSleepOverlay(g2d: Graphics2D, x: Int, y: Int, width: Int, height: Int): Unit = {
-    g2d.drawImage(Highlight.SleepHL.img ,x, y, width, height, null)
+  def drawSleepOverlay(
+      g2d: Graphics2D,
+      x: Int,
+      y: Int,
+      width: Int,
+      height: Int
+  ): Unit = {
+    g2d.drawImage(Highlight.SleepHL.img, x, y, width, height, null)
   }
 }
 
@@ -230,7 +238,7 @@ object OnBoard {
       attackingCreature.toDestroy = true
     if(defendingCreature.hp <= 0)
       attackingCreature.toDestroy= true
-    */
+     */
     attackingCreature.setTurnTaken()
   }
 
@@ -239,7 +247,7 @@ object OnBoard {
       defendingCreature: Creature
   ): Unit = {
     defendingCreature.damage(attackingCreature.power)
-    if(defendingCreature.hp > 0)
+    if (defendingCreature.hp > 0)
       attackingCreature.damage(defendingCreature.power)
   }
 

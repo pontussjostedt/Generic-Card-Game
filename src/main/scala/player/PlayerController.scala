@@ -1,5 +1,6 @@
 import java.awt.image.BufferedImage
 import java.awt.Graphics2D
+import java.awt.Font
 import Highlight.*
 import scala.collection.mutable.ArrayBuffer
 import scala.util.hashing.Hashing.Default
@@ -10,7 +11,7 @@ class PlayerController(val player: Player)(using ctx: Game) {
     var currentState: ControllerState = new DefaultState
     val board = ctx.board
     val hand = player.hand
-    //val mana = player.reserve
+    val mana = player.mana
     var absPos = ctx.window.mouseManager.pos
     var mousePos = ((absPos(0)-board.x)/board.cardSize, (absPos(1)-board.y)/board.cardSize)
     
@@ -31,8 +32,15 @@ class PlayerController(val player: Player)(using ctx: Game) {
         if(board.contains(absPos)) then g2d.highlightCardOverBoard(RedHL, absPos)
         if(hand.contains(absPos)) then g2d.highlightCardOverHand(WhiteHL, absPos)
         currentState.draw(g2d)
+        drawMana(g2d)
 
+        
 
+    }
+
+    def drawMana(g2d: java.awt.Graphics2D): Unit =  {
+        g2d.setFont(new Font("Courier New", 1, 50))
+        g2d.drawString(s"${mana.curMana}/${mana.curMaxMana}", 1500, 700)
     }
 
 
@@ -53,22 +61,25 @@ class PlayerController(val player: Player)(using ctx: Game) {
             if(isValidBoardDrag)
                 enterBoardDragState()
             else if(isValidHandDrag)
+                println("HAND DRAG A CLOCK")
+                println(hand.canAfford(absPos, player))
                 enterHandDragState()
          
         }
 
         def draw(g2d: Graphics2D): Unit = {
-
+            hand.highlightCanNotAfford(g2d, Highlight.WhiteHL, player)
         }
 
 
             def isValidBoardDrag: Boolean = {ctx.window.mouseManager.leftPressed && board.isAlliedWithTurn(mousePos, player.team) && cardContainer == None && dragTimer()}
-            def isValidHandDrag: Boolean = {ctx.window.mouseManager.leftPressed && hand.bound.contains(absPos) && cardContainer == None && dragTimer()}
+            def isValidHandDrag: Boolean = {ctx.window.mouseManager.leftPressed && hand.bound.contains(absPos) && cardContainer == None && dragTimer() && hand.canAfford(absPos, player)}
     }
 
     case class DraggingState(var origin: (Int, Int)) extends ControllerState {
         var isAllowedToRelease = false
         def tick(): Unit = {
+            //Lock to make everything smoother
             if(!ctx.window.mouseManager.leftPressed)
                 isAllowedToRelease = true
             
@@ -134,7 +145,14 @@ class PlayerController(val player: Player)(using ctx: Game) {
 
         def isValidInsertPos: Boolean = insertBound.contains(hand.getInsertIndex(absPos)) && (0 until hand.cardY).contains(absPos(1))
         def isValidHandInsert: Boolean = isValidInsertPos && isAllowedToRelease && ctx.window.mouseManager.leftPressed
-        def isValidBoardInsert: Boolean = ctx.window.mouseManager.leftPressed && isAllowedToRelease && board.isNotCard(mousePos)
+        def isValidBoardInsert: Boolean = {
+        cardContainer.get match {
+            case onboard: OnBoard => ctx.window.mouseManager.leftPressed && isAllowedToRelease && onboard.getPossibleSpawnLocation.contains(mousePos) && board.isNotCard(mousePos)
+            case _ => true
+        }
+        
+    
+    }
     }
 
     def handDebug(): Unit = {

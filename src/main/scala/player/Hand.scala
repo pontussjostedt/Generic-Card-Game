@@ -51,6 +51,17 @@ class Hand(deck: Deck, x: Int, y: Int)(using ctx: Game) {
     card.drawInfo(g2d, Game.highlightPos(0), Game.highlightPos(1), card.infoImage.getWidth, card.infoImage.getHeight)
   }
 
+  def highlightOverHand(g2d: Graphics2D, hl: Highlight, index: Int): Unit = {
+    assert(cards.indices.contains(index), s"WARNING------Youre out of bounds :) $index out of ${cards.indices}")
+    g2d.drawImage(hl.img, x + index * cardX, y, cardX, cardY, null)
+  }
+
+  def highlightCanNotAfford(g2d: Graphics2D, hl: Highlight, player: Player): Unit = {
+      for(i <- cards.indices){
+          if(!canAfford(i, player)) then highlightOverHand(g2d, hl, i)
+      }
+  }
+
   def highlightInsert(g2d: Graphics2D, pos: (Int, Int)): Unit = {
     var insertIndex = getInsertIndex(pos)
     var p1 = (x + cardX * insertIndex, y)
@@ -75,5 +86,19 @@ class Hand(deck: Deck, x: Int, y: Int)(using ctx: Game) {
 
   def insert(index: Int, elem: Card): Unit = {
     cards.insert(index, elem)
+  }
+
+  def canAfford(absPos: (Int, Int), player: Player): Boolean = {
+      getMouseQuadrant(absPos) match {
+          case index if(cards.indices.contains(index)) => cards(index).manaCost <= player.mana.curMana
+          case _ => false
+      }
+  }
+
+  def canAfford(index: Int, player: Player): Boolean = {
+    index match {
+        case index if(cards.indices.contains(index)) => cards(index).manaCost <= player.mana.curMana
+        case _ => false
+    }
   }
 }
