@@ -1,4 +1,3 @@
-import java.awt.Graphics2D
 object Launcher {
     
     @main

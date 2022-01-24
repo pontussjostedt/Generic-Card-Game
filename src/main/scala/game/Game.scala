@@ -1,5 +1,4 @@
 import java.awt.Graphics2D
-import Mana.*
 class Game {
   given Game = this
   val window = new Window("import steel as steal", Game.dimX, Game.dimY)
@@ -30,7 +29,6 @@ class Game {
   def draw(g2d: Graphics2D): Unit = {
       board.draw(g2d)
       activePlayerController.draw(g2d)
-      player1.draw(g2d)
   }
 
   def checkFrameRate(): Unit  ={

@@ -10,7 +10,7 @@ class PlayerController(val player: Player)(using ctx: Game) {
     var currentState: ControllerState = new DefaultState
     val board = ctx.board
     val hand = player.hand
-    val mana = player.reserve
+    //val mana = player.reserve
     var absPos = ctx.window.mouseManager.pos
     var mousePos = ((absPos(0)-board.x)/board.cardSize, (absPos(1)-board.y)/board.cardSize)
     

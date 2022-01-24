@@ -55,9 +55,6 @@ open class Creature(
       infoImage.getHeight,
       BufferedImage.TYPE_4BYTE_ABGR
     )
-    val manaList = manaCost.cost.toVector.sortBy { case (manaType, value) =>
-      value < value
-    }
     var g2d = img.createGraphics()
     g2d.drawImage(infoImageSource, 0, 0, img.getWidth, img.getHeight, null)
     val iconWidth = 20
