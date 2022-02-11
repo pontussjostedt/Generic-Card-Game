@@ -4,6 +4,7 @@ import scala.collection.mutable.ArrayBuffer
 import java.awt.Color
 import java.awt.Graphics2D
 import scala.collection.mutable
+import java.util.LinkedList
 open class Creature(
     val power: Int,
     val maxHealth: Int,
@@ -13,6 +14,10 @@ open class Creature(
     infoPath: String = "placeHolderInfo.png",
     team: Team
 ) extends OnBoard(path, infoPath, team) {
+  val buffs: LinkedList[Buff] = LinkedList()
+  var dmgTaken: Int = 0;
+  var dmgHealed: Int = 0;
+  var additionalHealth: Int = 0;
   var hp: Int = maxHealth
   var armor = maxArmor
   updateCardImage()
@@ -50,8 +55,17 @@ open class Creature(
     }
   }
 
+  def getEffectiveHp(): Int = {
+    hp - Math.max(dmgHealed - dmgTaken, 0)
+  }
+
   def heal(restoration: Int): Unit = {
     hp = math.min(restoration + hp, maxHealth)
+  }
+
+  /**Returns the card to the state is was as it was created is to be used in combination with the buffsystem update function*/
+  def reset(): Unit = {
+
   }
 
   override def updateCardImage(): Unit = {

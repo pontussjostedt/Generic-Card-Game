@@ -121,6 +121,7 @@ class PlayerController(val player: Player)(using ctx: Game) {
                 isAllowedToRelease = true
             if(isValidBoardInsert)
                 board.set(mousePos, cardContainer)
+                mana -= cardContainer.get.manaCost
                 cardContainer = None
                 currentState = DefaultState()
                 dragTimer.reset()
@@ -157,11 +158,14 @@ class PlayerController(val player: Player)(using ctx: Game) {
 
     def handDebug(): Unit = {
         if(ctx.window.keyManager.isKeyPressed(65) && testTimer.resetIf())
-                hand.drawCard()
+            hand.drawCard()
         if(ctx.window.keyManager.isKeyPressed(81) && ctx.turntimer.resetIf())
+            ctx.nextRound()
+        /*
             ctx.counter += 1
             board.newRound(ctx.controllers(ctx.counter % ctx.controllers.length).player.team)
             println(board.filter(Filters.containsTag(_, _, Tag.FirstStrike, Tag.Human)))
+        */
     }
 
     def enterBoardDragState(): Unit = {

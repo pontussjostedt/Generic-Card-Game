@@ -22,7 +22,6 @@ class Game {
 
 
   def tick(): Unit = {
-      activePlayerController = controllers(counter % controllers.length)
       activePlayerController.tick()
   }
 
@@ -31,15 +30,21 @@ class Game {
       activePlayerController.draw(g2d)
   }
 
-  def checkFrameRate(): Unit  ={
+  def checkFrameRate(): Unit = {
     fps += 1
     if(fpsTimer.resetIf()){
       println(s"average fps over the last 10s = ${fps/10}")
       fps = 0
     }
   }
- 
-  
+
+  def nextRound(): Unit = {
+      counter += 1
+      activePlayerController = controllers(counter % controllers.length)
+      board.newRound(activePlayerController.player.team)
+      activePlayerController.player.mana.onStartOfRound()
+  }
+
 }
 
 object Game {
