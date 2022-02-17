@@ -6,7 +6,7 @@ class GoldForgePriest(team: Team) extends Creature(2,4,0,3, "res/white/goldForge
       val xs = board.getCardsInSquare(pos, 3, {_.getTeam() == team})
       xs.foreach{x => 
         x match {
-            case a: Creature => a.heal(2)
+            case creature: Creature => creature.heal(2)
             case _ =>
         }
       }
