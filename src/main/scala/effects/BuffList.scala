@@ -13,14 +13,14 @@ class BuffList {
     }
 
     /**Reverses all buffs and then applies all*/
-    def update(matrixPos: (Int, Int), target: Creature)(using board: Board): Unit = {
-        cleanUp(matrixPos, target, board)
+    def update(target: Creature)(using board: Board): Unit = {
+        cleanUp(target, board)
         target.reset()
-        underlying.foreach(buff => buff.apply(board, target, matrixPos))
+        underlying.foreach(buff => buff.apply(board, target))
     }
 
     /**Removes buffs which nolonger meat their predicate*/
-    def cleanUp(matrixPos: (Int, Int), target: Creature, board: Board): Unit = {
-        underlying = underlying.filter(buff => buff.predicate(board, target, matrixPos)) 
+    def cleanUp(target: Creature, board: Board): Unit = {
+        underlying = underlying.filter(buff => buff.predicate(board, target)) 
     }
 }

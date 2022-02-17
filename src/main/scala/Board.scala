@@ -264,6 +264,10 @@ class Board(path: String, var x: Int = 0, var y: Int = 0)(using ctx: Game) {
       }
     }
   }
+
+  def fight(c1: Creature, c2: Creature): Unit = {
+    
+  }
   def newRound(team: Team): Unit = {
     println("newRound")
     for(x <- arr.indices; y <- arr(x).indices){

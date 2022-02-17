@@ -6,7 +6,7 @@ import java.awt.Graphics2D
 import scala.collection.mutable
 import java.util.LinkedList
 open class Creature(
-    val power: Int,
+    val maxPower: Int,
     val maxHealth: Int,
     val maxArmor: Int,
     var manaCost: Int,
@@ -14,11 +14,12 @@ open class Creature(
     infoPath: String = "placeHolderInfo.png",
     team: Team
 ) extends OnBoard(path, infoPath, team) {
-  val buffs: LinkedList[Buff] = LinkedList()
+  val buffs: BuffList = BuffList()
   var dmgTaken: Int = 0;
   var dmgHealed: Int = 0;
   var additionalHealth: Int = 0;
   var hp: Int = maxHealth
+  var power: Int = maxPower;
   var armor = maxArmor
   updateCardImage()
 
@@ -65,7 +66,14 @@ open class Creature(
 
   /**Returns the card to the state is was as it was created is to be used in combination with the buffsystem update function*/
   def reset(): Unit = {
+    hp = maxHealth;
+    power = maxPower;
+  }
 
+  /** Called before combat */
+  override def onCombat(card: Card)(using board: Board): Unit = {
+    println("UPDATING BUFFS")
+    buffs.update(this)
   }
 
   override def updateCardImage(): Unit = {
@@ -122,7 +130,7 @@ open class Creature(
     g2d.setFont(new Font("Courier New", 1, 60))
     g2d.setColor(Color.black)
     g2d.drawString(armor.toString, 400, 455)
-    g2d.drawString(s"$power/$hp", 25, 455)
+    g2d.drawString(s"$maxPower/$hp", 25, 455)
     image = img
     g2d.dispose
   }
@@ -151,9 +159,10 @@ open class Creature(
     out
   }
 
-  def fight(card: OnBoard): Unit = {
+  def fight(card: OnBoard, matrixPos: (Int, Int))(using board: Board): Unit = {
+    System.out.println("GOT TO FIGHT")
     card match {
-      case a: Creature =>
+      case a: Creature => a.onCombat(this); onCombat(card)
       case _           => println("NOT A CREATURE MONKA")
     }
   }
@@ -187,7 +196,9 @@ abstract class OnBoard(path: String, infoPath: String, team: Team)
   }
 
   /** Called before combat */
-  def onCombat(card: Card)(using board: Board): Unit = {}
+  def onCombat(card: Card)(using board: Board): Unit = {
+    
+  }
 
   /** Called on taking dmage */
   def onDamage(using board: Board): Unit = {}
@@ -240,7 +251,7 @@ object OnBoard {
 
   /** forces two cards to fight eachother */
 
-  def fight(attackingCreature: Creature, defendingCreature: Creature): Unit = {
+  def fight(attackingCreature: Creature, defendingCreature: Creature)(using board: Board): Unit = {
     if (attackingCreature.tags.contains(Tag.FirstStrike))
       firstStrikeFight(attackingCreature, defendingCreature)
     else
@@ -253,6 +264,7 @@ object OnBoard {
     if(defendingCreature.hp <= 0)
       attackingCreature.toDestroy= true
      */
+    //attackingCreature.buffs.update(attackingCreature)
     attackingCreature.setTurnTaken()
   }
 
@@ -260,17 +272,17 @@ object OnBoard {
       attackingCreature: Creature,
       defendingCreature: Creature
   ): Unit = {
-    defendingCreature.damage(attackingCreature.power)
+    defendingCreature.damage(attackingCreature.maxPower)
     if (defendingCreature.hp > 0)
-      attackingCreature.damage(defendingCreature.power)
+      attackingCreature.damage(defendingCreature.maxPower)
   }
 
   def normalFight(
       attackingCreature: Creature,
       defendingCreature: Creature
   ): Unit = {
-    defendingCreature.damage(attackingCreature.power)
-    attackingCreature.damage(defendingCreature.power)
+    defendingCreature.damage(attackingCreature.maxPower)
+    attackingCreature.damage(defendingCreature.maxPower)
   }
 
   def updateImages(in: OnBoard*): Unit = {
